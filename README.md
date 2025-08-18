@@ -1,4 +1,4 @@
-# OADSClassifier+
+# Ensemble OADS Classifier
 
 This repository provides an implementation of an ensemble learning framework for classification tasks. Below are the instructions to set up the environment, download the saved model weights, and run the framework.
 
