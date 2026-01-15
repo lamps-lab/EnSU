@@ -3,3 +3,7 @@ venv/
 .venv/
 env/
 .env/
+./saved_weights
+saved_weights/
+./__pycache__/
+__pycache__/
