@@ -39,9 +39,13 @@ def majority_voting(*prediction_sets):
     return np.array(final_predictions)
 
 # Load data from a JSON file
+
 def load_data(file_path):
-    with open(file_path, 'r') as file:
-        return json.load(file)  # Return the loaded data directly
+    with open(file_path, 'r', encoding='utf-8') as file:  # Add encoding='utf-8'
+        return json.load(file)
+#def load_data(file_path):
+#    with open(file_path, 'r') as file:
+#        return json.load(file)  # Return the loaded data directly
 
 # Main function to execute the workflow
 def main():
@@ -53,10 +57,11 @@ def main():
     instructor = Instructor(args, logger)
 
 
-    predictions_csv_path = 'predictions-mapped.csv'  # Path to your CSV file with predictions
+    predictions_csv_path = 'D:/Server/OADS-HT25-D29E-V2/OADS-HT25/dataset/predictions-mapped.csv'  # Path to your CSV file with predictions
 
     # Get predictions using SCIBERT the classifiers
     sciBERT_predictions = get_results()
+    #true_labels, scl_predictions = instructor.run()
     true_labels, scl_predictions = instructor.run()
 
     # Define label mapping
@@ -76,13 +81,21 @@ def main():
     bertGCN_predictions = predictions_df['label'].map(label_mapping).tolist()
 
     # Combine predictions from different classifiers (including mapped_labels)
-    final_predictions = majority_voting(scl_predictions, predictions_df['predicted_label'])
+    #final_predictions = majority_voting(scl_predictions, predictions_df['predicted_label'])
+    final_predictions = majority_voting(scl_predictions, bertGCN_predictions, sciBERT_predictions)
 
+    if true_labels is not None:
+        print(classification_report(true_labels, final_predictions))
+    else:
+        print("Final ensemble predictions generated (no true labels available).")
+    # Optionally save predictions
+    np.save("final_ensemble_predictions.npy", final_predictions)
+    print("Saved predictions to final_ensemble_predictions.npy")
     # Print classification reports
     
-    print("Classification Report:")
-    print(classification_report(true_labels, final_predictions))
-
+#    print("Classification Report:")
+#    print(classification_report(true_labels, final_predictions))
+    print(final_predictions)
 if __name__ == '__main__':
     main()
 
