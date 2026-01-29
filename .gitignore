@@ -7,3 +7,9 @@ env/
 saved_weights/
 ./__pycache__/
 __pycache__/
+./logs/
+logs/
+enviro-setup.sh
+saved_weights/SCL_Weights.pkl
+./dataset/OADS_Test_Old.json
+/dataset/OADS_Test_Old.json
