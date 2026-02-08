@@ -3,41 +3,39 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datasets import Dataset
 import pickle
-import json
+import ijson  # pip install ijson   ← install this if not already present
+from tqdm import tqdm
 
 def preprocess_function(examples):
-    model_name = "allenai/scibert_scivocab_uncased"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-    # Tokenize the text field
+    tokenizer = AutoTokenizer.from_pretrained("allenai/scibert_scivocab_uncased")
     return tokenizer(
         examples['text'],
         padding='max_length',
         truncation=True,
-        max_length=512,           # adjust if needed
+        max_length=512,
         return_tensors='pt'
     )
 
 
 def predict(model, dataset):
+    """Predict in smaller batches to save memory"""
     model.eval()
     predictions = []
     
-    for i in range(len(dataset)):
-        batch = dataset[i]
+    batch_size = 32  # adjust lower if still OOM
+    for i in tqdm(range(0, len(dataset), batch_size), desc="Predicting"):
+        batch = dataset[i:i + batch_size]
         
-        # Only keep the keys the model actually needs
         inputs = {
-            'input_ids': batch['input_ids'].unsqueeze(0).to(model.device),
-            'attention_mask': batch['attention_mask'].unsqueeze(0).to(model.device)
+            'input_ids': batch['input_ids'].to(model.device),
+            'attention_mask': batch['attention_mask'].to(model.device)
         }
         
         with torch.no_grad():
             outputs = model(**inputs)
         
-        logits = outputs.logits
-        pred = torch.argmax(logits, dim=-1).item()
-        predictions.append(pred)
+        preds = torch.argmax(outputs.logits, dim=-1).cpu().tolist()
+        predictions.extend(preds)
     
     return predictions
 
@@ -53,51 +51,65 @@ def get_results():
     }
     
     model_name = "allenai/scibert_scivocab_uncased"
-    
-    # Load tokenizer and model
     tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         num_labels=len(label_mapping)
     )
     
     # Load saved weights
-    model_file_path = 'saved_weights/sciBERT_weights.pkl'  # adjust path if needed
+    model_file_path = 'saved_weights/sciBERT_weights.pkl'
     with open(model_file_path, 'rb') as f:
         state_dict = pickle.load(f)
     model.load_state_dict(state_dict)
     
-    # ────────────────────────────────────────────────────────────────
-    # CHANGED: Load the full JSON test set instead of the CSV
-    test_json_path = 'dataset/OADS_Test.json'   # ← same file SCL is using
+    print("Model loaded successfully.")
     
-    with open(test_json_path, 'r', encoding='utf-8') as f:
-        test_data = json.load(f)
+    # ── STREAMING LOAD for very large JSON ──────────────────────────────────
+    test_json_path = 'dataset/OADS_Test.json'
     
-    test_df = pd.DataFrame(test_data)
+    print(f"[SciBERT] Streaming large JSON file: {test_json_path}")
     
-    # Standardize column name (some files use 'Text', most use 'text')
-    if 'text' not in test_df.columns and 'Text' in test_df.columns:
-        test_df = test_df.rename(columns={'Text': 'text'})
+    texts = []
     
-    if 'text' not in test_df.columns:
-        raise ValueError("No 'text' column found in the loaded JSON data")
+    with open(test_json_path, 'rb') as f:  # binary mode for ijson
+        objects = ijson.items(f, 'item')   # iterates over each object in the array
+        
+        for obj in tqdm(objects, desc="Reading texts"):
+            # Look for the text field (handles 'Text' or 'text')
+            text = obj.get('Text') or obj.get('text') or obj.get('sentence')
+            if text and isinstance(text, str) and text.strip():
+                texts.append(text)
     
-    print(f"[SciBERT] Loaded {len(test_df)} examples from {test_json_path}")
+    if not texts:
+        raise ValueError("No valid text entries found in the JSON file")
+    
+    print(f"[SciBERT] Successfully extracted {len(texts)} text entries (streaming mode)")
+    
+    # Create minimal DataFrame → only keeps the text column
+    test_df = pd.DataFrame({'text': texts})
+    
     if len(test_df) > 0:
-        print(f"    First text preview: {test_df['text'].iloc[0][:120]}...")
-    # ────────────────────────────────────────────────────────────────
+        preview = test_df['text'].iloc[0][:120].replace('\n', ' ').strip()
+        print(f"    First text preview: {preview}...")
+    # ────────────────────────────────────────────────────────────────────────
 
     # Convert to Hugging Face Dataset
     test_dataset = Dataset.from_pandas(test_df)
     
-    # Apply tokenization
-    test_dataset = test_dataset.map(preprocess_function, batched=True, remove_columns=test_dataset.column_names)
+    # Tokenize in batches + remove original text column to save memory
+    print("[SciBERT] Tokenizing dataset...")
+    test_dataset = test_dataset.map(
+        preprocess_function,
+        batched=True,
+        batch_size=500,               # smaller batch size → less memory spike
+        remove_columns=['text']       # discard raw text immediately
+    )
     
-    # Set format for PyTorch
+    # Set PyTorch format
     test_dataset.set_format('torch', columns=['input_ids', 'attention_mask'])
     
-    # Run prediction
     print("[SciBERT] Starting prediction...")
     predictions = predict(model, test_dataset)
     
@@ -107,5 +119,9 @@ def get_results():
 
 
 if __name__ == '__main__':
-    preds = get_results()
-    print("Sample predictions (first 10):", preds[:10])
+    try:
+        preds = get_results()
+        print("\nSample predictions (first 10):", preds[:10])
+    except Exception as e:
+        print("Error during execution:")
+        print(e)
