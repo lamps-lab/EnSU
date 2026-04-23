@@ -19,8 +19,8 @@ saved_weights/SCL_Weights.pkl
 /dataset/OADS_Test.json
 ./dataset/OADS_Train.json
 /dataset/OADS_Train.json
-./dataset/OADS_Lite.json
-/dataset/OADS_Lite.json
+./dataset/OADS_Test_Lite.json
+/dataset/OADS_Test_Lite.json
 ./dataset/OADS_Test_Sentence.csv
 /dataset/OADS_Test_Sentence.csv
 ./dataset/predictions-mapped.csv
