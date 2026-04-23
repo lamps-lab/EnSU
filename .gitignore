@@ -13,3 +13,15 @@ enviro-setup.sh
 saved_weights/SCL_Weights.pkl
 ./dataset/OADS_Test_Old.json
 /dataset/OADS_Test_Old.json
+/dataset/OADS_Train_Old.json
+./dataset/OADS_Train_Old.json
+./dataset/OADS_Test.json
+/dataset/OADS_Test.json
+./dataset/OADS_Train.json
+/dataset/OADS_Train.json
+./dataset/OADS_Lite.json
+/dataset/OADS_Lite.json
+./dataset/OADS_Test_Sentence.csv
+/dataset/OADS_Test_Sentence.csv
+./dataset/predictions-mapped.csv
+/dataset/predictions-mapped.csv
