@@ -1,1 +1,58 @@
 
+cff-version: 1.2.0
+message: "If you use this repository, please cite the JCDL 2025 paper using the preferred citation below."
+title: "EnSU"
+type: software
+authors:
+  - family-names: "Salsabil"
+    given-names: "Lamia"
+  - family-names: "Obadage"
+    given-names: "Rochana R."
+  - family-names: "Banerjee"
+    given-names: "Bipasha"
+  - family-names: "Abeysinghe"
+    given-names: "Yasasi"
+  - family-names: "Alam"
+    given-names: "Sawood"
+  - family-names: "Färber"
+    given-names: "Michael"
+  - family-names: "Ingram"
+    given-names: "William"
+  - family-names: "Fox"
+    given-names: "Edward"
+  - family-names: "Wu"
+    given-names: "Jian"
+
+repository-code: "https://github.com/lamps-lab/EnSU"
+url: "https://github.com/lamps-lab/EnSU"
+
+preferred-citation:
+  type: conference-paper
+  authors:
+    - family-names: "Salsabil"
+      given-names: "Lamia"
+    - family-names: "Obadage"
+      given-names: "Rochana R."
+    - family-names: "Banerjee"
+      given-names: "Bipasha"
+    - family-names: "Abeysinghe"
+      given-names: "Yasasi"
+    - family-names: "Alam"
+      given-names: "Sawood"
+    - family-names: "Färber"
+      given-names: "Michael"
+    - family-names: "Ingram"
+      given-names: "William"
+    - family-names: "Fox"
+      given-names: "Edward"
+    - family-names: "Wu"
+      given-names: "Jian"
+  title: "Context-Based URL Classification for Open Access Datasets and Software in Scholarly Documents"
+  conference:
+    name: "2025 ACM/IEEE Joint Conference on Digital Libraries (JCDL)"
+  collection-title: "2025 ACM/IEEE Joint Conference on Digital Libraries (JCDL)"
+  year: 2025
+  start: 197
+  end: 206
+  doi: "10.1109/JCDL67857.2025.00031"
+  url: "https://doi.org/10.1109/JCDL67857.2025.00031"
